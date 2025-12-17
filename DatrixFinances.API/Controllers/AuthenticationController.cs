@@ -12,6 +12,12 @@ public class AuthenticationController(IAuthenticationService authenticationServi
 
     private readonly IAuthenticationService _authenticationService = authenticationService;
 
+    /// <summary>
+    /// Generates a bearer token for the given client credentials.
+    /// </summary>
+    /// <param name="clientId"></param>
+    /// <param name="clientSecret"></param>
+    /// <returns></returns>
     [HttpPost("token")]
     [Consumes("application/x-www-form-urlencoded")]
     public async Task<ActionResult> GetToken([FromForm(Name = "client_id")] string clientId, [FromForm(Name = "client_secret")] string clientSecret)
