@@ -1,11 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using DatrixFinances.API.Repositories;
 using DatrixFinances.API.Services;
 using DatrixFinances.API.Utils;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MudBlazor.Services;
 using Newtonsoft.Json;
@@ -57,50 +55,7 @@ public partial class Program
             }
         };
 
-        builder.Services.AddAuthentication("Bearer").AddJwtBearer("Bearer", options =>
-        {
-            options.Events = new JwtBearerEvents
-            {
-                OnMessageReceived = context =>
-                {
-                    var token = context.Request.Headers.Authorization.FirstOrDefault()?.Split(" ").Last();
-                    context.Token = token;
-                    return Task.CompletedTask;
-                },
-
-                OnAuthenticationFailed = context =>
-                {
-                    Console.WriteLine($"AUTH FAILED: {context.Exception.Message}");
-                    return Task.CompletedTask;
-                },
-
-                OnTokenValidated = async context =>
-                {
-                    var token = context.SecurityToken as JsonWebToken;
-                    var rawToken = context.Request.Headers.Authorization.ToString().Replace("Bearer ", "");
-
-                    var db = context.HttpContext.RequestServices.GetRequiredService<DatabaseContext>();
-                    bool tokenExists = await db.Users.AnyAsync(user => user.Bearer == rawToken);
-
-                    if (!tokenExists)
-                    {
-                        context.Fail("Token not found in DB");
-                    }
-                }
-            };
-
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ValidateIssuerSigningKey = false,
-                ValidateLifetime = false,
-                SignatureValidator = (token, parameters) =>
-                {
-                    return new JsonWebTokenHandler().ReadJsonWebToken(token);
-                }
-            };
-        });
+        builder.Services.AddAuthentication("Bearer").AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, SimpleBearerHandler>("Bearer", null);
 
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddControllers()
@@ -139,15 +94,18 @@ public partial class Program
                     Version = "Testing"
                 });
             }
-            
 
-            config.AddSecurityDefinition("ApiKeyAuth", new OpenApiSecurityScheme
+            config.AddSecurityDefinition("OAuth2", new OpenApiSecurityScheme
             {
-                Description = "Enter your combined auth token (clientId:clientSecret:vendorApiKey)",
-                Name = "Authentication-Keys",
-                In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey,
-                Scheme = "ApiKeyAuth"
+                Type = SecuritySchemeType.OAuth2,
+                Flows = new OpenApiOAuthFlows
+                {
+                    ClientCredentials = new OpenApiOAuthFlow
+                    {
+                        TokenUrl = new Uri("/oauth2/token", UriKind.Relative),
+                        Scopes = new Dictionary<string, string>()
+                    }
+                }
             });
 
             config.OperationFilter<AuthOperationFilter>();
@@ -160,6 +118,7 @@ public partial class Program
         builder.Services.AddScoped<IYukiService, YukiService>();
 
         builder.Services.AddScoped<IAPIActivityAspectRepository, APIActivityAspectRepository>();
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
 
         builder.Services.AddHttpClient("Yuki", client =>
         {
