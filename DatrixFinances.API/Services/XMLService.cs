@@ -139,6 +139,20 @@ public class XMLService : IXMLService
         return accounts;
     }
 
+    public List<SalesItem> ParseYukiSalesItemResponseList(string xml)
+    {
+        var doc = XDocument.Parse(xml);
+
+        XNamespace ns = "http://www.theyukicompany.com/";
+
+        return [.. doc.Descendants(ns + "SalesItem")
+            .Select(item => new SalesItem
+            {
+                Id = (string?)item.Element(ns + "id") ?? string.Empty,
+                Description = (string?)item.Element(ns + "description") ?? string.Empty
+            })];
+    }
+
     public ProcessSalesInvoice ParseYukiProcessSalesInvoicesResponse(string xml)
     {
         throw new NotImplementedException();

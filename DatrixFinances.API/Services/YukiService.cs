@@ -103,4 +103,21 @@ public class YukiService(IHttpClientFactory httpClientFactory, IXMLService xmlSe
             return _xmlService.ParseYukiErrorResponse(await response.Content.ReadAsStringAsync());
         return _xmlService.ParseYukiOutstandingDebtorResponse(await response.Content.ReadAsStringAsync());
     }
+
+    public async Task<object> GetSalesItems(string bearer, string administrationName)
+    {
+        var user = await _userRepository.GetUserByBearer(bearer);
+        if (user == null)
+            return new ErrorResponse { Code = HttpStatusCode.Unauthorized.ToString(), Message = "Bearer token is invalid or expired." };
+        var sessionID = await _authenticationService.YukiGetSessionId("Accounting", user.YukiApiKey);
+        if (string.IsNullOrEmpty(sessionID))
+            return new ErrorResponse { Code = "Invalid access key.", Message = $"Our partner is unable to process access key '{user.YukiApiKey}'" };
+        var administrationID = await GetAdministrationId(sessionID, administrationName);
+        if (administrationID is ErrorResponse)
+            return administrationID;
+        var response = await _httpClientYuki.GetAsync($"/ws/Sales.asmx/GetSalesItems?sessionID={sessionID}&administrationID={administrationID}");
+        if (!response.IsSuccessStatusCode)
+            return _xmlService.ParseYukiErrorResponse(await response.Content.ReadAsStringAsync());
+        return _xmlService.ParseYukiSalesItemResponseList(await response.Content.ReadAsStringAsync());
+    }
 }

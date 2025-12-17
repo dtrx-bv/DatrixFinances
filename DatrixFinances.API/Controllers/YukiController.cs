@@ -105,4 +105,18 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
             return UnprocessableEntity(response);
         return Ok(response);
     }
+
+    [Authorize]
+    [HttpGet("company/{administrationName}/salesitems")]
+    public async Task<ActionResult> GetYukiSalesItems(string administrationName)
+    {
+        var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
+        if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            return Unauthorized();
+        var bearer = authHeader["Bearer ".Length..].Trim();
+        var response = await _yukiService.GetSalesItems(bearer, administrationName);
+        if (response is ErrorResponse)
+            return UnprocessableEntity(response);
+        return Ok(response);
+    }
 }

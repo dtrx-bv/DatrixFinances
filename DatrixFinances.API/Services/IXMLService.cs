@@ -12,6 +12,7 @@ public interface IXMLService
     List<OutstandingDebtorItem> ParseYukiOutstandingDebtorResponse(string xml);
     List<YukiVATCode> ParseYukiVATCodeResponseList(string xml);
     List<GlAccount> ParseYukiGlAccountResponseList(string xml);
+    List<SalesItem> ParseYukiSalesItemResponseList(string xml);
     ProcessSalesInvoice ParseYukiProcessSalesInvoicesResponse(string xml);
     XElement CreateRequestXMLYukiProcessSalesInvoice(string sessionId, string administrationId, bool disableAutoCorrect, List<SalesInvoice> invoices);
 }
