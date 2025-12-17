@@ -24,10 +24,10 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
     public async Task<ActionResult> GetAllOutstandingDebtorYukiInvoices(string administrationName)
     {
         var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
-        if (authHeader == null || !authHeader.StartsWith("Apikey ", StringComparison.OrdinalIgnoreCase))
+        if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
             return Unauthorized();
-        var sessionID = authHeader["Apikey ".Length..].Trim();
-        var response = await _yukiService.GetAllOutstandingDebtorInvoices(sessionID, administrationName);
+        var bearer = authHeader["Bearer ".Length..].Trim();
+        var response = await _yukiService.GetAllOutstandingDebtorInvoices(bearer, administrationName);
         if (response is ErrorResponse)
             return UnprocessableEntity(response);
         return Ok(response);
@@ -43,10 +43,10 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
     public async Task<ActionResult> UploadSalesInvoice(string administrationName, List<SalesInvoice> invoices)
     {
         var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
-        if (authHeader == null || !authHeader.StartsWith("Apikey ", StringComparison.OrdinalIgnoreCase))
+        if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
             return Unauthorized();
-        var sessionID = authHeader["Apikey ".Length..].Trim();
-        var response = await _yukiService.UploadSalesInvoice(sessionID, administrationName, false, invoices);
+        var bearer = authHeader["Bearer ".Length..].Trim();
+        var response = await _yukiService.UploadSalesInvoice(bearer, administrationName, false, invoices);
         if (response is ErrorResponse)
             return UnprocessableEntity(response);
         return Ok(response);
@@ -77,13 +77,13 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
     /// </remarks>
     [Authorize]
     [HttpGet("company/{administrationName}/vatcodes")]
-    public async Task<ActionResult> GetYukiAvailableCompanyVATCodes(string administrationName)
+    public async Task<ActionResult> GetAvailableCompanyVATCodes(string administrationName)
     {
         var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
-        if (authHeader == null || !authHeader.StartsWith("Apikey ", StringComparison.OrdinalIgnoreCase))
+        if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
             return Unauthorized();
-        var sessionID = authHeader["Apikey ".Length..].Trim();
-        var response = await _yukiService.GetAvailableVATCodes(sessionID, administrationName);
+        var bearer = authHeader["Bearer ".Length..].Trim();
+        var response = await _yukiService.GetAvailableVATCodes(bearer, administrationName);
         if (response is ErrorResponse)
             return UnprocessableEntity(response);
         return Ok(response);
@@ -97,10 +97,10 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
     public async Task<ActionResult> GetYukiAvailableGlAccounts(string administrationName)
     {
         var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
-        if (authHeader == null || !authHeader.StartsWith("Apikey ", StringComparison.OrdinalIgnoreCase))
+        if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
             return Unauthorized();
-        var sessionID = authHeader["Apikey ".Length..].Trim();
-        var response = await _yukiService.GetAvailableGlAccounts(sessionID, administrationName);
+        var bearer = authHeader["Bearer ".Length..].Trim();
+        var response = await _yukiService.GetAvailableGlAccounts(bearer, administrationName);
         if (response is ErrorResponse)
             return UnprocessableEntity(response);
         return Ok(response);
