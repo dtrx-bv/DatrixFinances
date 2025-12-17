@@ -5,5 +5,6 @@ namespace DatrixFinances.API.Repositories;
 public interface IUserRepository
 {
     Task<User> GetUserByCredentials(string clientId, string clientSecret);
+    Task<User> GetUserByBearer(string bearer);
     Task Update(User user);
 }

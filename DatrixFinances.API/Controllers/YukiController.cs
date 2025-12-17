@@ -40,7 +40,7 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
     /// <param name="invoices"></param>
     [Authorize]
     [HttpPost("invoice/sales/upload/{administrationName}")]
-    public async Task<ActionResult> UploadYukiSalesInvoice(string administrationName, List<SalesInvoice> invoices)
+    public async Task<ActionResult> UploadSalesInvoice(string administrationName, List<SalesInvoice> invoices)
     {
         var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
         if (authHeader == null || !authHeader.StartsWith("Apikey ", StringComparison.OrdinalIgnoreCase))
@@ -56,14 +56,14 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
     /// Returns all administrations that can be accessed with the given session ID.
     /// </summary>
     [Authorize]
-    [HttpGet("company/administration")]
-    public async Task<ActionResult> GetYukiAdministrations()
+    [HttpGet("company/administrations")]
+    public async Task<ActionResult> GetAdministrations()
     {
         var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
-        if (authHeader == null || !authHeader.StartsWith("Apikey ", StringComparison.OrdinalIgnoreCase))
+        if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
             return Unauthorized();
-        var sessionID = authHeader["Apikey ".Length..].Trim();
-        var response = await _yukiService.GetAdministrations(sessionID);
+        var bearer = authHeader["Bearer ".Length..].Trim();
+        var response = await _yukiService.GetAdministrations(bearer);
         if (response is ErrorResponse)
             return UnprocessableEntity(response);
         return Ok(response);

@@ -14,6 +14,11 @@ public class UserRepository(DatabaseContext context) : IUserRepository
         return await _context.Users.FirstOrDefaultAsync(u => u.ClientId == clientId && u.ClientSecret == clientSecret) ?? null!;
     }
 
+    public async Task<User> GetUserByBearer(string bearer)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.Bearer == bearer && u.TokenExpiry > DateTime.UtcNow) ?? null!;
+    }
+
     public async Task Update(User user)
     {
         _context.Users.Update(user);

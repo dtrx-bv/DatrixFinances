@@ -1,16 +1,18 @@
 
+using System.Net;
 using System.Xml.Linq;
 using DatrixFinances.API.Models;
 using DatrixFinances.API.Models.Network.Request;
+using DatrixFinances.API.Repositories;
 
 namespace DatrixFinances.API.Services;
 
-public class YukiService(IHttpClientFactory httpClientFactory, IXMLService xmlService, IAuthenticationService authenticationService) : IYukiService
+public class YukiService(IHttpClientFactory httpClientFactory, IXMLService xmlService, IAuthenticationService authenticationService, IUserRepository userRepository) : IYukiService
 {
     private readonly HttpClient _httpClientYuki = httpClientFactory.CreateClient("Yuki");
     private readonly IXMLService _xmlService = xmlService;
     private readonly IAuthenticationService _authenticationService = authenticationService;
-
+    private readonly IUserRepository _userRepository = userRepository;
     public async Task<object> GetAdministrationId(string sessionID, string administrationName)
     {
         XNamespace yuki = "http://www.theyukicompany.com/";
@@ -22,11 +24,14 @@ public class YukiService(IHttpClientFactory httpClientFactory, IXMLService xmlSe
         return new ErrorResponse { Code = $"Error parsing administration name.", Message = $"'{administrationName}' does not exist." };
     }
 
-    public async Task<object> GetAdministrations(string accessKey)
+    public async Task<object> GetAdministrations(string bearer)
     {
-        var sessionID = await _authenticationService.YukiGetSessionId("Accounting", accessKey);
+        var user = await _userRepository.GetUserByBearer(bearer);
+        if (user == null)
+            return new ErrorResponse { Code = HttpStatusCode.Unauthorized.ToString(), Message = "Bearer token is invalid or expired." };
+        var sessionID = await _authenticationService.YukiGetSessionId("Accounting", user.YukiApiKey);
         if (string.IsNullOrEmpty(sessionID))
-            return new ErrorResponse { Code = "Invalid access key.", Message = $"Our partner is unable to process access key '{accessKey}'" };
+            return new ErrorResponse { Code = "Invalid access key.", Message = $"Our partner is unable to process access key '{user.YukiApiKey}'" };
         var administrations = await (await _httpClientYuki.GetAsync($"/ws/Accounting.asmx/Administrations?sessionID={sessionID}")).Content.ReadAsStringAsync();
         return _xmlService.ParseYukiAdministrationResponse(administrations);
     }

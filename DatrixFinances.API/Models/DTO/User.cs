@@ -13,4 +13,5 @@ public class User
     public string Name { get; set; } = string.Empty;
     public bool IsAuthorized { get; set; }
     public DateTime TokenExpiry { get; set; }
+    public string YukiApiKey { get; set; } = string.Empty;
 }
