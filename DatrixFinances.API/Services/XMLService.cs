@@ -119,7 +119,7 @@ public class XMLService : IXMLService
 
         XNamespace ns = "http://www.theyukicompany.com/";
 
-        var accounts = doc.Descendants(ns + "GlAccount")
+        return [.. doc.Descendants(ns + "GlAccount")
             .Select(acc => new GlAccount
             {
                 Code = (string?)acc.Element(ns + "code") ?? string.Empty,
@@ -133,10 +133,7 @@ public class XMLService : IXMLService
                 IsVATApplicable = bool.TryParse((string?)acc.Element(ns + "isVATApplicable"), out var vatApplicable) && vatApplicable,
                 DeductableVATPercentage = double.TryParse((string?)acc.Element(ns + "deductableVATPercentage"), NumberStyles.Any, CultureInfo.InvariantCulture, out var deductable) ? deductable : double.MinValue,
                 ProfessionalPercentage = double.TryParse((string?)acc.Element(ns + "professionalPercentage"), NumberStyles.Any, CultureInfo.InvariantCulture, out var professional) ? professional : double.MinValue
-            })
-            .ToList();
-
-        return accounts;
+            })];
     }
 
     public List<SalesItem> ParseYukiSalesItemResponseList(string xml)
