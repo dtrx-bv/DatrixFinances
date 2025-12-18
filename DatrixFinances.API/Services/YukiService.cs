@@ -70,7 +70,7 @@ public class YukiService(IHttpClientFactory httpClientFactory, IXMLService xmlSe
         return _xmlService.ParseYukiVATCodeResponseList(await response.Content.ReadAsStringAsync());
     }
 
-    public async Task<object> UploadSalesInvoice(string bearer, string administrationName, bool autoCorrectEnabled, List<SalesInvoice> invoices)
+    public async Task<object> UploadSalesInvoice(string bearer, string administrationName, bool autoCorrectEnabled, SalesInvoice invoice)
     {
         var user = await _userRepository.GetUserByBearer(bearer);
         if (user == null)
@@ -81,7 +81,7 @@ public class YukiService(IHttpClientFactory httpClientFactory, IXMLService xmlSe
         var administrationID = await GetAdministrationId(sessionID, administrationName);
         if (administrationID is ErrorResponse)
             return administrationID;
-        var response = await _httpClientYuki.PostAsync("/ws/Sales.asmx", new StringContent(_xmlService.CreateRequestXMLYukiProcessSalesInvoice(sessionID, (string)administrationID, autoCorrectEnabled, invoices).ToString(SaveOptions.DisableFormatting), null, "text/xml"));
+        var response = await _httpClientYuki.PostAsync("/ws/Sales.asmx", new StringContent(_xmlService.CreateRequestXMLYukiProcessSalesInvoice(sessionID, (string)administrationID, autoCorrectEnabled, invoice).ToString(SaveOptions.DisableFormatting), null, "text/xml"));
         if (!response.IsSuccessStatusCode)
             return _xmlService.ParseYukiErrorResponse(await response.Content.ReadAsStringAsync());
         return _xmlService.ParseYukiProcessSalesInvoicesResponse(await response.Content.ReadAsStringAsync());

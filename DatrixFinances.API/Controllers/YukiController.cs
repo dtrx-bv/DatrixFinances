@@ -21,7 +21,7 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
     /// <param name="administrationName"></param>
     [Authorize]
     [HttpGet("invoice/outstanding/debtor/{administrationName}")]
-    public async Task<ActionResult> GetAllOutstandingDebtorYukiInvoices(string administrationName)
+    public async Task<ActionResult> GetAllOutstandingDebtorInvoices(string administrationName)
     {
         var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
         if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
@@ -40,13 +40,13 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
     /// <param name="invoices"></param>
     [Authorize]
     [HttpPost("invoice/sales/upload/{administrationName}")]
-    public async Task<ActionResult> UploadSalesInvoice(string administrationName, List<SalesInvoice> invoices)
+    public async Task<ActionResult> UploadSalesInvoice(string administrationName, SalesInvoice invoice)
     {
         var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
         if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
             return Unauthorized();
         var bearer = authHeader["Bearer ".Length..].Trim();
-        var response = await _yukiService.UploadSalesInvoice(bearer, administrationName, false, invoices);
+        var response = await _yukiService.UploadSalesInvoice(bearer, administrationName, false, invoice);
         if (response is ErrorResponse)
             return UnprocessableEntity(response);
         return Ok(response);
