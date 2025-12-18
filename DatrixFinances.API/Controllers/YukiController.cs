@@ -37,7 +37,7 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
     /// Processes XML documents containing sales invoices.
     /// </summary>
     /// <param name="administrationName"></param>
-    /// <param name="invoices"></param>
+    /// <param name="invoice"></param>
     [Authorize]
     [HttpPost("invoice/sales/upload/{administrationName}")]
     public async Task<ActionResult> UploadSalesInvoice(string administrationName, SalesInvoice invoice)
