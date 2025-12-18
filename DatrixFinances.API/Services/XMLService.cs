@@ -244,7 +244,7 @@ public class XMLService : IXMLService
         if (string.IsNullOrEmpty(invoice.Contact.ContactCode))
             contact.Add(new XElement(nsYuki + "ContactCode"));
         else
-            contact.Add(new XElement(nsYuki + "", invoice.Contact.ContactCode));
+            contact.Add(new XElement(nsYuki + "ContactCode", invoice.Contact.ContactCode));
 
         contact.Add(new XElement(nsYuki + "FullName", !string.IsNullOrEmpty(invoice.Contact.FullName) ? invoice.Contact.FullName : PROPERTY_ERROR_MESSAGE));
 

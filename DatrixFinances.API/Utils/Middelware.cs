@@ -106,46 +106,6 @@ public class Middleware(RequestDelegate next, IServiceProvider serviceProvider, 
             flag = Flag.PotentialMalicious;
         }
 
-        // OLD CODE USED TO GET MAVENTA CREDENTIALS BEFORE THE ACTUAL CONTROLLER IS HIT
-        //
-        // if (context.GetEndpoint()?.Metadata.GetMetadata<Microsoft.AspNetCore.Authorization.IAuthorizeData>() != null)
-        // {
-        //     var tokenHeader = context.Request.Headers["Authentication-Keys"].FirstOrDefault();
-
-        //     if (string.IsNullOrEmpty(tokenHeader))
-        //     {
-        //         context.Response.StatusCode = 401;
-        //         Console.WriteLine("Missing Authentication-Keys header");
-        //         return;
-        //     }
-
-        //     var parts = tokenHeader.Split(':');
-        //     if (parts.Length != 3)
-        //     {
-        //         context.Response.StatusCode = 400;
-        //         Console.WriteLine("Invalid Authentication-Keys header format, expected format: clientId:clientSecret:vendorApiKey, received: " + tokenHeader);
-        //         return;
-        //     }
-
-        //     var clientId = parts[0];
-        //     var clientSecret = parts[1];
-        //     var vendorApiKey = parts[2];
-
-        //     using var scope = _serviceProvider.CreateScope();
-        //     var authService = scope.ServiceProvider.GetRequiredService<IAuthenticationService>();
-
-        //     var bearerToken = await authService.MaventaTokenRequest(clientId, clientSecret, vendorApiKey);
-
-        //     if (bearerToken == null || string.IsNullOrEmpty(bearerToken))
-        //     {
-        //         context.Response.StatusCode = 400;
-        //         Console.WriteLine("Failed to obtain bearer token from Maventa.");
-        //         return;
-        //     }
-
-        //     context.Request.Headers.Authorization = $"Bearer {bearerToken}";
-        // }
-
         var originalBodyStream = context.Response.Body;
         using var responseBody = new MemoryStream();
         context.Response.Body = responseBody;
@@ -156,8 +116,9 @@ public class Middleware(RequestDelegate next, IServiceProvider serviceProvider, 
         {
              await _next(context);
         } 
-        catch (Exception)
+        catch (Exception ex)
         {
+            Console.WriteLine($"Unhandled exception in middleware:\n{ex.Message}\n{ex.StackTrace}");
             context.Response.StatusCode = 500;
         }
 
