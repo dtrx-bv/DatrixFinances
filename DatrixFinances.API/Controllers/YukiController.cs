@@ -1,3 +1,4 @@
+using System.Xml.Linq;
 using DatrixFinances.API.Models;
 using DatrixFinances.API.Models.Network.Request;
 using DatrixFinances.API.Services;
@@ -36,6 +37,9 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
     /// <summary>
     /// Processes XML documents containing sales invoices.
     /// </summary>
+    /// <remarks>
+    /// SalesInvoice Schema can be found <a target="_blank" href="https://api.yukiworks.be/schemas/SalesInvoices.xsd">here</a>.
+    /// </remarks>
     /// <param name="administrationName"></param>
     /// <param name="invoice"></param>
     [Authorize]
