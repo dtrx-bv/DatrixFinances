@@ -1,0 +1,140 @@
+@page "/portal/api-activity"
+
+@using System.Diagnostics.CodeAnalysis
+@using DatrixFinances.API.Utils
+@using Microsoft.EntityFrameworkCore
+@using System.Text
+@using System.Xml.Linq
+
+@inject IServiceProvider ServiceProvider
+@inject IDialogService DialogService
+@attribute [ExcludeFromCodeCoverage]
+
+<MudDataGrid Height="calc(100vh - 200px)" T="APIActivityAspect" RowsPerPage="int.MaxValue" Items="@ApiActivityLog" SortMode="SortMode.Multiple" Loading="IsRefreshingApiActivityLog" Dense FixedFooter FixedHeader Hover>
+    <ToolBarContent>
+        <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="@Size.Small" OnClick="@(async () => await OnApiActivityRefresh(1000))" Disabled="IsRefreshingApiActivityLog" />
+        <MudText Typo="Typo.h6">API Activity Log</MudText>
+        @* <MudSpacer />
+        <MudTextField T="string" ValueChanged="@(s=>OnSearchApiActivityAspects(s))" Placeholder="Search" Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField> *@
+        <MudSpacer />
+        <MudButton Disabled Variant="@(IsAutoRefreshEnabled ? Variant.Filled : Variant.Outlined)" Color="Color.Primary" OnClick="StartAutoRefreshTimer">@(IsAutoRefreshEnabled ? "Stop" : "Start") Auto-Refresh</MudButton>
+    </ToolBarContent>
+    <Columns>
+        <TemplateColumn>
+            <CellTemplate>
+                <MudIconButton Icon="@Icons.Material.Filled.MoreVert" OnClick="@(async () => await OnLoadRecordDetails(context.Item))" />
+            </CellTemplate>
+        </TemplateColumn>
+        <PropertyColumn Property="x => x.DateTimeOffset.ToLocalTime()" Title="Timestamp" Format="yyyy-MM-dd HH:mm" Sortable="true" InitialDirection="SortDirection.Descending"/>
+        <PropertyColumn Property="x => x.IPv4" Title="IPv4"/>
+        <PropertyColumn Property="x => x.IPv6" Title="IPv6" />
+        <PropertyColumn Property="x => x.OriginCompany" Title="Company" />
+        <PropertyColumn Property="x => x.OriginPlatform" Title="Platform" />
+        <PropertyColumn Property="x => x.SignedInCompanyUser" Title="User" />
+        <PropertyColumn Property="x => x.HttpMethod" Title="Url" />
+        <PropertyColumn Property="x => x.ControllerMethod" Title="Method" />
+        <PropertyColumn Property="x => x.StatusCodeName" Title="Status" />
+        <PropertyColumn Property="x => x.ElapsedMilliseconds" Title="ms" />
+        <PropertyColumn Property="x => x.Flag" Title="Flag" />
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Models.DTO.APIActivityAspect" PageSizeOptions="new int[] { int.MaxValue }"/>
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    private List<APIActivityAspect> ApiActivityLog = new();
+    private bool IsRefreshingApiActivityLog = false;
+    private bool IsAutoRefreshEnabled { get; set; }
+
+    private APIActivityAspect SelectedApiActivityAspect { get; set; } = new();
+
+    private System.Threading.Timer? _refreshTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await OnApiActivityRefresh(1000);
+    }
+
+    public void Dispose()
+    {
+        _refreshTimer?.Dispose();
+    }
+
+    public void StartAutoRefreshTimer()
+    {
+        
+        if (_refreshTimer == null)
+        {
+            IsAutoRefreshEnabled = true;
+            _refreshTimer = new System.Threading.Timer(async _ =>
+            {
+                await InvokeAsync(async () =>
+                {
+                    await OnApiActivityRefresh(1000);
+                });
+            }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+        }
+        else
+        {
+            IsAutoRefreshEnabled = false;
+            _refreshTimer.Dispose();
+            _refreshTimer = null;
+        }
+    }
+
+    private async Task OnLoadRecordDetails(APIActivityAspect aspect)
+    {
+        using var scope = ServiceProvider.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+        SelectedApiActivityAspect = await service.APIActivityLogs
+            .AsNoTracking()
+            .FirstAsync(a => a.Id == aspect.Id);
+
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var parameters = new DialogParameters { { "ApiActivityAspect", SelectedApiActivityAspect } };
+        await DialogService.ShowAsync<NotificationDetailsDialog>("Notification", parameters, options);
+    }
+
+    private async Task OnApiActivityRefresh(int take)
+    {
+        IsRefreshingApiActivityLog = true;
+
+        ApiActivityLog.Clear();
+        using var scope = ServiceProvider.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+        var allActivities = await service.APIActivityLogs
+            .AsNoTracking()
+            .Where(activity => !activity.HttpMethod.StartsWith("/_")
+                && !activity.HttpMethod.StartsWith("/.")
+                && !activity.HttpMethod.StartsWith("/swagger")
+                && !activity.HttpMethod.StartsWith("/portal")
+                && !activity.HttpMethod.StartsWith("/notifications")
+                && !activity.HttpMethod.StartsWith("/stylesheet.css"))
+            .Select(activity => new APIActivityAspect
+            {
+                Id = activity.Id,
+                DateTimeOffset = activity.DateTimeOffset,
+                IPv4 = activity.IPv4,
+                IPv6 = activity.IPv6,
+                OriginCompany = activity.OriginCompany,
+                OriginPlatform = activity.OriginPlatform,
+                SignedInCompanyUser = activity.SignedInCompanyUser,
+                HttpMethod = activity.HttpMethod,
+                ControllerMethod = activity.ControllerMethod,
+                StatusCodeName = activity.StatusCodeName,
+                ElapsedMilliseconds = activity.ElapsedMilliseconds,
+                Flag = activity.Flag
+            })
+            .OrderByDescending(activity => activity.DateTimeOffset)
+            .Take(take)
+            .ToListAsync();
+
+        ApiActivityLog.AddRange(allActivities);
+
+        IsRefreshingApiActivityLog = false;
+
+        StateHasChanged();
+    }
+}

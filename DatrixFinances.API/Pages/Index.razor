@@ -1,4 +1,13 @@
 @page "/portal"
+@using System.Diagnostics.CodeAnalysis
+@using DatrixFinances.API.Utils
+@using Microsoft.EntityFrameworkCore
+
+@inject IServiceProvider ServiceProvider
+@inject IDialogService DialogService
+@inject IJSRuntime JS
+
+@attribute [ExcludeFromCodeCoverage]
 
 <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
     <MudGrid>
@@ -12,5 +21,109 @@
                 </a>
             </MudPaper>
         </MudItem>
+        <MudItem xs="12" sm="12" md="6">
+            <MudPaper Elevation="2" Class="tile" Style="height: 200px; cursor:pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <a href="/portal/api-activity" style="text-decoration:none; color:inherit; display:flex; align-items:center; justify-content:center; height:100%;">
+                    <MudStack AlignItems="AlignItems.Center" Spacing="1">
+                        <MudIcon Icon="@Icons.Material.Filled.LocalActivity" Size="Size.Large" />
+                        <MudText Typo="Typo.h6" Align="Align.Center">Api Activity</MudText>
+                    </MudStack>
+                </a>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12">
+            <MudPaper Elevation="2" Style="cursor:pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <MudDataGrid Height="400px" T="User" Items="@Users" SortMode="SortMode.Multiple" Loading="IsRefreshingUsers" Dense FixedFooter FixedHeader Hover>
+                    <ToolBarContent>
+                        <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="@Size.Small" OnClick="@(async () => await OnUsersRefresh())" Disabled="IsRefreshingUsers" />
+                        <MudText Typo="Typo.h6">Users</MudText>
+                        <MudSpacer />
+                        @* <MudIconButton Icon="@Icons.Material.Filled.Add" Size="@Size.Small" OnClick="@(async () => await OnUserDialogClicked(0, new User()))" Disabled="IsRefreshingUsers" /> *@
+                    </ToolBarContent>
+                    <Columns>
+                        <TemplateColumn>
+                            <CellTemplate>
+                                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="@(context.Item.IsAuthorized ? Color.Inherit : Color.Error)">
+                                    <MudMenuItem Icon="@Icons.Material.Filled.ContentCopy" OnClick="@(async () => await CopyClientCredentialsToClipboard(context.Item))">
+                                        Copy credentials to clipboard
+                                    </MudMenuItem>
+                                    <MudMenuItem Icon="@Icons.Material.Filled.Key" OnClick="@(async () => await CopyClientAuthenticationKeysToClipboard(context.Item))">
+                                        Copy authentication keys to clipboard
+                                    </MudMenuItem>
+                                </MudMenu>
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <PropertyColumn Property="x => x.Name" Title="Name" />
+                        <TemplateColumn Title="Yuki">
+                            <CellTemplate>
+                                @if (string.IsNullOrEmpty(context.Item.YukiApiKey))
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.HorizontalRule" Color="Color.Surface" />
+                                }
+                                else
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
+                                }
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Exact Online">
+                            <CellTemplate>
+                                <MudIcon Icon="@Icons.Material.Filled.HorizontalRule" Color="Color.Error" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Octopus">
+                            <CellTemplate>
+                                <MudIcon Icon="@Icons.Material.Filled.HorizontalRule" Color="Color.Error" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager T="Models.DTO.User" />
+                    </PagerContent>
+                </MudDataGrid>
+            </MudPaper>
+        </MudItem>
     </MudGrid>
 </MudContainer>
+
+@code {
+    private List<User> Users { get; set; } = [];
+    private bool IsRefreshingUsers { get; set; } = true;
+
+    protected override void OnInitialized()
+    {
+        _ = OnDataLoad();
+    }
+
+    private async Task OnDataLoad()
+    {
+        await OnUsersRefresh();
+        StateHasChanged();
+    }
+
+    private async Task OnUsersRefresh() {
+        IsRefreshingUsers = true;
+
+        Users.Clear();
+        using var scope = ServiceProvider.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+
+        var allUsers = await service.Users.ToListAsync();
+
+        Users.AddRange(allUsers);
+
+        IsRefreshingUsers = false;
+
+        StateHasChanged();
+    }
+
+    private async Task CopyClientCredentialsToClipboard(User user) {
+        var credentials = $"Client ID: {user.ClientId}\nClient Secret: {user.ClientSecret}";
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", credentials);
+    }
+
+    private async Task CopyClientAuthenticationKeysToClipboard(User user) {
+        var credentials = $"{user.ClientId}:{user.ClientSecret}";
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", credentials);
+    }
+}

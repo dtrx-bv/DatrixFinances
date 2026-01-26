@@ -1,0 +1,198 @@
+@using System.Diagnostics.CodeAnalysis
+@using System.Text
+@using System.Xml.Linq
+@using DatrixFinances.API.Services
+@inject IJSRuntime JS
+@attribute [ExcludeFromCodeCoverage]
+
+<MudDialog>
+    <TitleContent><MudText Typo="Typo.h6">Notification: @ApiActivityAspect.DateTimeOffset.ToLocalTime()</MudText></TitleContent>
+    <DialogContent>
+        <MudStack Row Spacing="2" Justify="Justify.SpaceEvenly">
+            <MudButton OnClick="@(async () => await OnSentPayloadWebClicked())" Disabled="@(string.IsNullOrEmpty(ApiActivityAspect.SentPayload))">
+                <MudStack AlignItems="AlignItems.Center" Spacing="1">
+                    <MudIcon Icon="@Icons.Material.Filled.Web" />
+                    <MudText Typo="Typo.caption">Sent Payload (Web)</MudText>
+                </MudStack>
+            </MudButton>
+            <MudButton OnClick="@(async () => await OnSentPayloadDownloadClicked())" Disabled="@(string.IsNullOrEmpty(ApiActivityAspect.SentPayload))">
+                <MudStack AlignItems="AlignItems.Center" Spacing="1">
+                    <MudIcon Icon="@Icons.Material.Filled.Download" />
+                    <MudText Typo="Typo.caption">Sent Payload (Download)</MudText>
+                </MudStack>
+            </MudButton>
+            <MudButton OnClick="@(async () => await OnReceivedPayloadWebClicked())" Disabled="@(string.IsNullOrEmpty(ApiActivityAspect.ReceivedPayload))">
+                <MudStack AlignItems="AlignItems.Center" Spacing="1">
+                    <MudIcon Icon="@Icons.Material.Filled.Web" />
+                    <MudText Typo="Typo.caption">Received Payload (Web)</MudText>
+                </MudStack>
+            </MudButton>
+            <MudButton OnClick="@(async () => await OnReceivedPayloadDownloadClicked())" Disabled="@(string.IsNullOrEmpty(ApiActivityAspect.ReceivedPayload))">
+                <MudStack AlignItems="AlignItems.Center" Spacing="1">
+                    <MudIcon Icon="@Icons.Material.Filled.Download" />
+                    <MudText Typo="Typo.caption">Received Payload (Download)</MudText>
+                </MudStack>
+            </MudButton>
+        </MudStack>
+    </DialogContent>
+</MudDialog>
+
+<script>
+    window.getClientTimezoneOffset = function () {
+        return new Date().getTimezoneOffset();
+    };
+
+    window.openJsonInNewTab = function (jsonString) {
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    };
+
+    window.openXmlInNewTab = function (xmlString) {
+        const blob = new Blob([xmlString], { type: 'text/xml' });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    };
+
+    window.openTextInNewTab = function (xmlString) {
+        const blob = new Blob([xmlString], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    };
+
+    window.downloadJsonFile = (filename, content) => {
+        const blob = new Blob([content], { type: "application/json" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    };
+
+    window.downloadXMLFile = (filename, content) => {
+        const blob = new Blob([content], { type: "text/xml" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    };
+
+    window.downloadTextFile = (filename, content) => {
+        const blob = new Blob([content], { type: "text/plain" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    };
+</script>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public APIActivityAspect ApiActivityAspect { get; set; } = new();
+
+    private bool IsProcessing { get; set; }
+    private string ButtonTitle { get; set; } = string.Empty;
+    private string Information { get; set; } = string.Empty;
+
+    private void Close() => MudDialog?.Cancel();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    private async Task OnSentPayloadWebClicked() {
+        var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(ApiActivityAspect.SentPayload!));
+        try {
+            if (ApiActivityAspect.SentPayloadContentType.Contains("json")) {
+                var parsedJson = Newtonsoft.Json.Linq.JToken.Parse(decoded);
+                var prettyJson = parsedJson.ToString(Newtonsoft.Json.Formatting.Indented);
+                await JS.InvokeVoidAsync("openJsonInNewTab", prettyJson);
+            }
+            else if (ApiActivityAspect.SentPayloadContentType.Contains("xml"))
+            {
+                var xmlElement = XElement.Parse(decoded);
+                var prettyXml = xmlElement.ToString(SaveOptions.None);
+                await JS.InvokeVoidAsync("openXmlInNewTab", prettyXml);
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("openTextInNewTab", decoded);
+            }
+        } catch (Exception) {
+            await JS.InvokeVoidAsync("openTextInNewTab", decoded);
+        }
+    }
+
+    private async Task OnSentPayloadDownloadClicked() {
+        var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(ApiActivityAspect.SentPayload!));
+        try {
+            if (ApiActivityAspect.SentPayloadContentType.Contains("json")) {
+                var parsedJson = Newtonsoft.Json.Linq.JToken.Parse(decoded);
+                var prettyJson = parsedJson.ToString(Newtonsoft.Json.Formatting.Indented);
+                await JS.InvokeVoidAsync("downloadJsonFile", $"Sent-Payload-{ApiActivityAspect.DateTimeOffset}.json", prettyJson);
+            }
+            else if (ApiActivityAspect.SentPayloadContentType.Contains("xml"))
+            {
+                var xmlElement = XElement.Parse(decoded);
+                var prettyXml = xmlElement.ToString(SaveOptions.None);
+                await JS.InvokeVoidAsync("downloadXMLFile", $"Sent-Payload-{ApiActivityAspect.DateTimeOffset}.xml", prettyXml);
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("downloadTextFile", $"Sent-Payload-{ApiActivityAspect.DateTimeOffset}.txt", decoded);
+            }
+        } catch (Exception) {
+            await JS.InvokeVoidAsync("downloadTextFile", $"Sent-Payload-{ApiActivityAspect.DateTimeOffset}.txt", decoded);
+        }
+    }
+
+    private async Task OnReceivedPayloadWebClicked() {
+        var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(ApiActivityAspect.ReceivedPayload!));
+        if (ApiActivityAspect.ReceivedPayloadContentType.Contains("json")) {
+            var parsedJson = Newtonsoft.Json.Linq.JToken.Parse(decoded);
+            var prettyJson = parsedJson.ToString(Newtonsoft.Json.Formatting.Indented);
+            await JS.InvokeVoidAsync("openJsonInNewTab", prettyJson);
+        }
+        else if (ApiActivityAspect.ReceivedPayloadContentType.Contains("xml"))
+        {
+            var xmlElement = XElement.Parse(decoded);
+            var prettyXml = xmlElement.ToString(SaveOptions.None);
+            await JS.InvokeVoidAsync("openXmlInNewTab", prettyXml);
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("openTextInNewTab", decoded);
+        }
+    }
+
+    private async Task OnReceivedPayloadDownloadClicked() {
+        var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(ApiActivityAspect.ReceivedPayload!));
+        if (ApiActivityAspect.ReceivedPayloadContentType.Contains("json")) {
+            var parsedJson = Newtonsoft.Json.Linq.JToken.Parse(decoded);
+            var prettyJson = parsedJson.ToString(Newtonsoft.Json.Formatting.Indented);
+            await JS.InvokeVoidAsync("downloadJsonFile", $"Response-Payload-{ApiActivityAspect.DateTimeOffset}.json", prettyJson);
+        }
+        else if (ApiActivityAspect.ReceivedPayloadContentType.Contains("xml"))
+        {
+            var xmlElement = XElement.Parse(decoded);
+            var prettyXml = xmlElement.ToString(SaveOptions.None);
+            await JS.InvokeVoidAsync("downloadXMLFile", $"Response-Payload-{ApiActivityAspect.DateTimeOffset}.xml", prettyXml);
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("downloadTextFile", $"Response-Payload-{ApiActivityAspect.DateTimeOffset}.txt", decoded);
+        }
+    }
+}
