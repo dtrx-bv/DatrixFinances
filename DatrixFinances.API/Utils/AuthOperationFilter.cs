@@ -28,7 +28,7 @@ public class AuthOperationFilter : IOperationFilter
                                 Reference = new OpenApiReference
                                 {
                                     Type = ReferenceType.SecurityScheme,
-                                    Id = "OAuth2"
+                                    Id = "ApiKeyAuth"
                                 }
                             },
                             Array.Empty<string>()

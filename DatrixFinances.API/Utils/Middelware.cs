@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using DatrixFinances.API.Models;
 using DatrixFinances.API.Models.DTO;
+using DatrixFinances.API.Models.Network;
 using DatrixFinances.API.Repositories;
 using DatrixFinances.API.Services;
 
@@ -104,6 +105,43 @@ public class Middleware(RequestDelegate next, IServiceProvider serviceProvider, 
         else
         {
             flag = Flag.PotentialMalicious;
+        }
+
+        if (context.GetEndpoint()?.Metadata.GetMetadata<Microsoft.AspNetCore.Authorization.IAuthorizeData>() != null)
+        {
+            var tokenHeader = context.Request.Headers["Authentication-Keys"].FirstOrDefault();
+
+            if (string.IsNullOrEmpty(tokenHeader))
+            {
+                context.Response.StatusCode = 401;
+                Console.WriteLine("Missing Authentication-Keys header");
+                return;
+            }
+
+            var parts = tokenHeader.Split(':');
+            if (parts.Length != 2)
+            {
+                context.Response.StatusCode = 400;
+                Console.WriteLine("Invalid Authentication-Keys header format, expected format: clientId:clientSecret, received: " + tokenHeader);
+                return;
+            }
+
+            var clientId = parts[0];
+            var clientSecret = parts[1];
+
+            using var scope = _serviceProvider.CreateScope();
+            var authService = scope.ServiceProvider.GetRequiredService<IAuthenticationService>();
+
+            var bearerToken = await authService.GetBearerToken(clientId, clientSecret);
+
+            if (bearerToken == null || bearerToken is not BearerToken)
+            {
+                context.Response.StatusCode = 400;
+                Console.WriteLine("Failed to obtain token.");
+                return;
+            }
+
+            context.Request.Headers.Authorization = $"Bearer {(bearerToken as BearerToken)!.AccessToken}";
         }
 
         var originalBodyStream = context.Response.Body;

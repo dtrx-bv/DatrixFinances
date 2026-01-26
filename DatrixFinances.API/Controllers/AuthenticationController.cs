@@ -1,5 +1,6 @@
 using DatrixFinances.API.Models;
 using DatrixFinances.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DatrixFinances.API.Controllers;
@@ -19,13 +20,19 @@ public class AuthenticationController(IAuthenticationService authenticationServi
     /// <param name="clientSecret"></param>
     /// <returns></returns>
     [HttpPost("token")]
+    [AllowAnonymous]
     [Consumes("application/x-www-form-urlencoded")]
-    public async Task<ActionResult> GetToken([FromForm(Name = "client_id")] string clientId, [FromForm(Name = "client_secret")] string clientSecret)
+    public async Task<ActionResult> GetToken(
+        [FromForm(Name = "client_id")] string clientId,
+        [FromForm(Name = "client_secret")] string clientSecret)
     {
-        Console.WriteLine($"Received token request with client_id: {clientId} and client_secret: {clientSecret}");
+        Console.WriteLine($"Received token request with client_id: {clientId}");
+
         var token = await _authenticationService.GetBearerToken(clientId, clientSecret);
+
         if (token is ErrorResponse error)
             return Unauthorized(error);
+
         return Ok(token);
     }
 }

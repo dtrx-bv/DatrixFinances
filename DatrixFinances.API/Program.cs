@@ -95,17 +95,13 @@ public partial class Program
                 });
             }
 
-            config.AddSecurityDefinition("OAuth2", new OpenApiSecurityScheme
+            config.AddSecurityDefinition("ApiKeyAuth", new OpenApiSecurityScheme
             {
-                Type = SecuritySchemeType.OAuth2,
-                Flows = new OpenApiOAuthFlows
-                {
-                    ClientCredentials = new OpenApiOAuthFlow
-                    {
-                        TokenUrl = new Uri("/oauth2/token", UriKind.Relative),
-                        Scopes = new Dictionary<string, string>()
-                    }
-                }
+                Description = "Enter your combined auth token (clientId:clientSecret)",
+                Name = "Authentication-Keys",
+                In = ParameterLocation.Header,
+                Type = SecuritySchemeType.ApiKey,
+                Scheme = "ApiKeyAuth"
             });
 
             config.OperationFilter<AuthOperationFilter>();

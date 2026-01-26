@@ -1,6 +1,7 @@
 using System.Net;
 using System.Xml.Linq;
 using DatrixFinances.API.Models;
+using DatrixFinances.API.Models.Network;
 using DatrixFinances.API.Repositories;
 
 namespace DatrixFinances.API.Services;
@@ -22,11 +23,10 @@ public class AuthenticationService(IHttpClientFactory httpClientFactory, IConfig
         user.TokenExpiry = DateTime.UtcNow.AddHours(1);
         await _userRepository.Update(user);
 
-        return new
+        return new BearerToken
         {
-            access_token = token,
-            token_type = "Bearer",
-            expires_in = 3600
+            AccessToken = token,
+            ExpiresIn = 3600
         };
     }
 
