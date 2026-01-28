@@ -67,7 +67,6 @@ public partial class Program
                         NamingStrategy = new SnakeCaseNamingStrategy()
                     };
                 options.SerializerSettings.Converters.Add(new DateOnlyJsonConverter());
-                options.SerializerSettings.DefaultValueHandling = DefaultValueHandling.Ignore;
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
             })
             .AddXmlSerializerFormatters();
