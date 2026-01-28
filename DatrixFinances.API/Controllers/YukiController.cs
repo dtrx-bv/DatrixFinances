@@ -17,6 +17,40 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
     private readonly IYukiService _yukiService = yukiService;
     
     /// <summary>
+    /// Returns all company domains.
+    /// </summary>
+    [Authorize]
+    [HttpGet("company/domains")]
+    public async Task<ActionResult> GetDomains()
+    {
+        var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
+        if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            return Unauthorized();
+        var bearer = authHeader["Bearer ".Length..].Trim();
+        var response = await _yukiService.GetDomains(bearer);
+        if (response is ErrorResponse)
+            return UnprocessableEntity(response);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Returns all company administrations.
+    /// </summary>
+    [Authorize]
+    [HttpGet("company/administrations")]
+    public async Task<ActionResult> GetAdministrations()
+    {
+        var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
+        if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            return Unauthorized();
+        var bearer = authHeader["Bearer ".Length..].Trim();
+        var response = await _yukiService.GetAdministrations(bearer);
+        if (response is ErrorResponse)
+            return UnprocessableEntity(response);
+        return Ok(response);
+    }
+
+    /// <summary>
     /// List of open items in Debtors list.
     /// </summary>
     /// <param name="administrationName"></param>
@@ -51,23 +85,6 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
             return Unauthorized();
         var bearer = authHeader["Bearer ".Length..].Trim();
         var response = await _yukiService.UploadSalesInvoice(bearer, administrationName, false, invoice);
-        if (response is ErrorResponse)
-            return UnprocessableEntity(response);
-        return Ok(response);
-    }
-
-    /// <summary>
-    /// Returns all administrations that can be accessed with the given session ID.
-    /// </summary>
-    [Authorize]
-    [HttpGet("company/administrations")]
-    public async Task<ActionResult> GetAdministrations()
-    {
-        var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
-        if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-            return Unauthorized();
-        var bearer = authHeader["Bearer ".Length..].Trim();
-        var response = await _yukiService.GetAdministrations(bearer);
         if (response is ErrorResponse)
             return UnprocessableEntity(response);
         return Ok(response);
@@ -110,6 +127,9 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
         return Ok(response);
     }
 
+    /// <summary>
+    /// Returns all sales items for the given administration.
+    /// </summary>
     [Authorize]
     [HttpGet("company/{administrationName}/salesitems")]
     public async Task<ActionResult> GetYukiSalesItems(string administrationName)
@@ -121,6 +141,23 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
         var response = await _yukiService.GetSalesItems(bearer, administrationName);
         if (response is ErrorResponse)
             return UnprocessableEntity(response);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Search Yuki contacts by search term.
+    /// </summary>
+    [Authorize]
+    [HttpGet("company/contacts/{query}")]
+    public async Task<ActionResult> GetYukiContacts(string query)
+    {
+        var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
+        if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            return Unauthorized();
+        var bearer = authHeader["Bearer ".Length..].Trim();
+        var response = await _yukiService.SearchContacts(bearer, query);
+        if (response is ErrorResponse)
+            return NotFound(response);
         return Ok(response);
     }
 }

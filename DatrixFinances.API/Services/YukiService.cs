@@ -36,6 +36,18 @@ public class YukiService(IHttpClientFactory httpClientFactory, IXMLService xmlSe
         return _xmlService.ParseYukiAdministrationResponse(administrations);
     }
 
+    public async Task<object> GetDomains(string bearer)
+    {
+        var user = await _userRepository.GetUserByBearer(bearer);
+        if (user == null)
+            return new ErrorResponse { Code = HttpStatusCode.Unauthorized.ToString(), Message = "Bearer token is invalid or expired." };
+        var sessionID = await _authenticationService.YukiGetSessionId("Accounting", user.YukiApiKey);
+        if (string.IsNullOrEmpty(sessionID))
+            return new ErrorResponse { Code = "Invalid access key.", Message = $"Our partner is unable to process access key '{user.YukiApiKey}'" };
+        var domains = await (await _httpClientYuki.GetAsync($"/ws/Accounting.asmx/Domains?sessionID={sessionID}")).Content.ReadAsStringAsync();
+        return _xmlService.ParseYukiDomainResponse(domains);
+    }
+
     public async Task<object> GetAvailableGlAccounts(string bearer, string administrationName)
     {
         var user = await _userRepository.GetUserByBearer(bearer);
@@ -119,5 +131,20 @@ public class YukiService(IHttpClientFactory httpClientFactory, IXMLService xmlSe
         if (!response.IsSuccessStatusCode)
             return _xmlService.ParseYukiErrorResponse(await response.Content.ReadAsStringAsync());
         return _xmlService.ParseYukiSalesItemResponseList(await response.Content.ReadAsStringAsync());
+    }
+
+    public async Task<object> SearchContacts(string bearer, string searchTerm)
+    {
+        var user = await _userRepository.GetUserByBearer(bearer);
+        if (user == null)
+            return new ErrorResponse { Code = HttpStatusCode.Unauthorized.ToString(), Message = "Bearer token is invalid or expired." };
+        var sessionID = await _authenticationService.YukiGetSessionId("Accounting", user.YukiApiKey);
+        if (string.IsNullOrEmpty(sessionID))
+            return new ErrorResponse { Code = "Invalid access key.", Message = $"Our partner is unable to process access key '{user.YukiApiKey}'" };
+        var response = await _httpClientYuki.PostAsync($"/ws/Contact.asmx", new StringContent(_xmlService.CreateSearchContactXML(sessionID, searchTerm).ToString(SaveOptions.DisableFormatting), null, "text/xml"));
+        Console.WriteLine(await response.Content.ReadAsStringAsync());
+        if (!response.IsSuccessStatusCode)
+            return _xmlService.ParseYukiErrorResponse(await response.Content.ReadAsStringAsync());
+        return _xmlService.ParseYukiContactResponseList(await response.Content.ReadAsStringAsync());
     }
 }

@@ -2,7 +2,9 @@ using System.Globalization;
 using System.Xml.Linq;
 using DatrixFinances.API.Models;
 using DatrixFinances.API.Models.Network.Request;
+using DatrixFinances.API.Models.Network.Request.Children;
 using DatrixFinances.API.Models.Network.Response;
+using DatrixFinances.API.Pages;
 
 namespace DatrixFinances.API.Services;
 
@@ -35,6 +37,88 @@ public class XMLService : IXMLService
             Message = message//,
             //Details = details
         };
+    }
+
+    public XElement CreateSearchContactXML(string sessionId, string searchTerm)
+    {
+        var root = new XElement(soapEnv + "Envelope",
+            new XAttribute(XNamespace.Xmlns + "soapenv", "http://schemas.xmlsoap.org/soap/envelope/"),
+            new XAttribute(XNamespace.Xmlns + "they", "http://www.theyukicompany.com/"));
+
+        root.Add(new XElement(soapEnv + "Header"));
+
+        var body = new XElement(soapEnv + "Body",
+            new XElement(they + "SearchContacts",
+                new XElement(they + "sessionID", sessionId),
+                new XElement(they + "searchOption", "All"),
+                new XElement(they + "searchValue", searchTerm)
+            )
+        );
+
+        root.Add(body);
+        return root;
+    }
+
+    public List<Models.Network.Response.Contact> ParseYukiContactResponseList(string xml)
+    {
+        var doc = XDocument.Parse(xml);
+
+        return [.. doc.Descendants("Contact")
+            .Select(contact =>
+            {
+                return new Models.Network.Response.Contact
+                {
+                    ContactId = (string?)contact.Attribute("ID") ?? string.Empty,
+                    Type = (string?)contact.Element("Type") ?? string.Empty,
+                    HID = int.TryParse((string?)contact.Element("HID"), out var hid) ? hid : int.MinValue,
+                    Code = (string?)contact.Element("Code") ?? string.Empty,
+                    Name = (string?)contact.Element("Name") ?? string.Empty,
+                    FirstName = (string?)contact.Element("FirstName") ?? string.Empty,
+                    MiddleName = (string?)contact.Element("MiddleName") ?? string.Empty,
+                    LastName = (string?)contact.Element("LastName") ?? string.Empty,
+                    AddressLine1 = (string?)contact.Element("AddressLine_1") ?? string.Empty,
+                    AddressLine2 = (string?)contact.Element("AddressLine_2") ?? string.Empty,
+                    PostCode = (string?)contact.Element("Postcode") ?? string.Empty,
+                    City = (string?)contact.Element("City") ?? string.Empty,
+                    MailAddressLine1 = (string?)contact.Element("MailAddressLine_1") ?? string.Empty,
+                    MailAddressLine2 = (string?)contact.Element("MailAddressLine_2") ?? string.Empty,
+                    MailPostCode = (string?)contact.Element("MailPostcode") ?? string.Empty,
+                    MailCity = (string?)contact.Element("MailCity") ?? string.Empty,
+                    Country = (string?)contact.Element("Country") ?? string.Empty,
+                    PhoneHome = (string?)contact.Element("PhoneHome") ?? string.Empty,
+                    EmailWork = (string?)contact.Element("EMailWork") ?? string.Empty,
+                    Website = (string?)contact.Element("Website") ?? string.Empty,
+                    VATNumber = (string?)contact.Element("VATNumber") ?? string.Empty,
+                    CocNumber = (string?)contact.Element("CoCNumber") ?? string.Empty,
+                    IncomeTaxNumber = (string?)contact.Element("IncomeTaxNumber") ?? string.Empty,
+                    Created = DateTime.TryParseExact((string?)contact.Element("Created"), "M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out var created) ? created : DateTime.MinValue,
+                    Modified = DateTime.TryParseExact((string?)contact.Element("Modified"), "M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out var modified) ? modified : DateTime.MinValue,
+                    MainContactPerson = (string?)contact.Element("MainContactPerson") ?? string.Empty,
+                    IsSupplier = bool.TryParse((string?)contact.Element("IsSupplier"), out var isSupplier) && isSupplier,
+                    IsCustomer = bool.TryParse((string?)contact.Element("IsCustomer"), out var isCustomer) && isCustomer,
+                    IBAN = (string?)contact.Element("IBAN") ?? string.Empty,
+                    BIC = (string?)contact.Element("BIC") ?? string.Empty,
+                    Tags = (string?)contact.Element("Tags") ?? string.Empty,
+                    BackofficeStatus = (string?)contact.Element("BackofficeStatus") ?? string.Empty
+                };
+            })];
+    }
+
+    public List<Domain> ParseYukiDomainResponse(string xml)
+    {
+        var doc = XDocument.Parse(xml);
+
+        return doc.Root?
+            .Elements("Domain")
+            .Select(domainElement => new Domain
+            {
+                Id = (string)domainElement.Attribute("ID")!,
+                Name = (string)domainElement.Element("Name")!,
+                URL = (string)domainElement.Element("URL")!,
+                StatusId = (string)domainElement.Element("Status")?.Attribute("ID")!,
+                Status = (string)domainElement.Element("Status")!
+            })
+            .ToList() ?? [];
     }
 
     public List<Administration> ParseYukiAdministrationResponse(string administrationsXML)

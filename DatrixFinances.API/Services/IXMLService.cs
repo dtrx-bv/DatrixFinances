@@ -15,4 +15,7 @@ public interface IXMLService
     List<SalesItem> ParseYukiSalesItemResponseList(string xml);
     ProcessSalesInvoice ParseYukiProcessSalesInvoicesResponse(string xml);
     XElement CreateRequestXMLYukiProcessSalesInvoice(string sessionId, string administrationId, bool disableAutoCorrect, SalesInvoice invoice);
+    XElement CreateSearchContactXML(string sessionId, string searchTerm);
+    List<Contact> ParseYukiContactResponseList(string xml);
+    List<Domain> ParseYukiDomainResponse(string xml);
 }
