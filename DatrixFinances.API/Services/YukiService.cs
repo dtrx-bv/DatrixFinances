@@ -142,7 +142,6 @@ public class YukiService(IHttpClientFactory httpClientFactory, IXMLService xmlSe
         if (string.IsNullOrEmpty(sessionID))
             return new ErrorResponse { Code = "Invalid access key.", Message = $"Our partner is unable to process access key '{user.YukiApiKey}'" };
         var response = await _httpClientYuki.PostAsync($"/ws/Contact.asmx", new StringContent(_xmlService.CreateSearchContactXML(sessionID, searchTerm).ToString(SaveOptions.DisableFormatting), null, "text/xml"));
-        Console.WriteLine(await response.Content.ReadAsStringAsync());
         if (!response.IsSuccessStatusCode)
             return _xmlService.ParseYukiErrorResponse(await response.Content.ReadAsStringAsync());
         return _xmlService.ParseYukiContactResponseList(await response.Content.ReadAsStringAsync());
