@@ -59,6 +59,160 @@ public class XMLService : IXMLService
         return root;
     }
 
+    public XElement CreateAddContactXML(string sessionId, Models.Network.Request.UpdateContact contact)
+    {
+        var root = new XElement(soapEnv + "Envelope",
+            new XAttribute(XNamespace.Xmlns + "soapenv", "http://schemas.xmlsoap.org/soap/envelope/"),
+            new XAttribute(XNamespace.Xmlns + "they", "http://www.theyukicompany.com/"));
+
+        root.Add(new XElement(soapEnv + "Header"));
+
+        XNamespace contactNs = "urn:xmlns:http://www.theyukicompany.com:contact";
+
+        var fullName = !string.IsNullOrWhiteSpace(contact.FullName)
+            ? contact.FullName
+            : string.Join(" ", new[] { contact.FirstName, contact.MiddleName, contact.LastName }
+                .Where(s => !string.IsNullOrWhiteSpace(s)));
+
+        var contactTypeValue = string.Equals(contact.Type, "Person", StringComparison.OrdinalIgnoreCase)
+            ? 0
+            : string.Equals(contact.Type, "Company", StringComparison.OrdinalIgnoreCase)
+            ? 2
+            : int.MinValue;
+
+        var contactElement = new XElement(contactNs + "Contact",
+            new XAttribute(XNamespace.Xmlns + "xsi", "http://www.w3.org/2001/XMLSchema-instance"),
+            new XElement(contactNs + "Type", contactTypeValue),
+            new XElement(contactNs + "Code", contact.Code ?? string.Empty),
+            new XElement(contactNs + "FirstName", contact.FirstName ?? string.Empty),
+            new XElement(contactNs + "MiddleName", contact.MiddleName ?? string.Empty),
+            new XElement(contactNs + "LastName", contact.LastName ?? string.Empty),
+            new XElement(contactNs + "FullName", fullName ?? string.Empty),
+            new XElement(contactNs + "AddressLine_1", contact.AddressLine1 ?? string.Empty),
+            new XElement(contactNs + "AddressLine_2", contact.AddressLine2 ?? string.Empty),
+            new XElement(contactNs + "PostCode", contact.PostCode ?? string.Empty),
+            new XElement(contactNs + "City", contact.City ?? string.Empty),
+            new XElement(contactNs + "MailAddressLine_1", contact.MailAddressLine1 ?? string.Empty),
+            new XElement(contactNs + "MailAddressLine_2", contact.MailAddressLine2 ?? string.Empty),
+            new XElement(contactNs + "MailPostCode", contact.MailPostCode ?? string.Empty),
+            new XElement(contactNs + "MailCity", contact.MailCity ?? string.Empty),
+            new XElement(contactNs + "Country", contact.Country ?? string.Empty),
+            new XElement(contactNs + "WorkAddressLine_1", contact.WorkAddressLine1 ?? string.Empty),
+            new XElement(contactNs + "WorkAddressLine_2", contact.WorkAddressLine2 ?? string.Empty),
+            new XElement(contactNs + "WorkPostCode", contact.WorkPostCode ?? string.Empty),
+            new XElement(contactNs + "WorkCity", contact.WorkCity ?? string.Empty),
+            new XElement(contactNs + "WorkCountry", contact.WorkCountry ?? string.Empty),
+            new XElement(contactNs + "PhoneHome", contact.PhoneHome ?? string.Empty),
+            new XElement(contactNs + "PhoneWork", contact.PhoneWork ?? string.Empty),
+            new XElement(contactNs + "MobileHome", contact.MobileHome ?? string.Empty),
+            new XElement(contactNs + "MobileWork", contact.MobileWork ?? string.Empty),
+            new XElement(contactNs + "EmailHome", contact.EmailHome ?? string.Empty),
+            new XElement(contactNs + "EmailWork", contact.EmailWork ?? string.Empty),
+            new XElement(contactNs + "VATNumber", contact.VATNumber ?? string.Empty),
+            new XElement(contactNs + "CoCNumber", contact.CocNumber ?? string.Empty)
+        );
+
+        var body = new XElement(soapEnv + "Body",
+            new XElement(they + "UpdateContact",
+                new XElement(they + "sessionID", sessionId),
+                new XElement(they + "xmlDoc", contactElement)
+            )
+        );
+
+        root.Add(body);
+        return root;
+    }
+
+    public XElement CreateUpdateContactXML(string sessionId, string id, Models.Network.Request.UpdateContact contact)
+    {
+        var root = new XElement(soapEnv + "Envelope",
+            new XAttribute(XNamespace.Xmlns + "soapenv", "http://schemas.xmlsoap.org/soap/envelope/"),
+            new XAttribute(XNamespace.Xmlns + "they", "http://www.theyukicompany.com/"));
+
+        root.Add(new XElement(soapEnv + "Header"));
+
+        XNamespace contactNs = "urn:xmlns:http://www.theyukicompany.com:contact";
+
+        var fullName = !string.IsNullOrWhiteSpace(contact.FullName)
+            ? contact.FullName
+            : string.Join(" ", new[] { contact.FirstName, contact.MiddleName, contact.LastName }
+                .Where(s => !string.IsNullOrWhiteSpace(s)));
+
+        var contactTypeValue = string.Equals(contact.Type, "Person", StringComparison.OrdinalIgnoreCase)
+            ? 0
+            : string.Equals(contact.Type, "Company", StringComparison.OrdinalIgnoreCase)
+            ? 2
+            : int.MinValue;
+
+        var contactElement = new XElement(contactNs + "Contact",
+            new XAttribute(XNamespace.Xmlns + "xsi", "http://www.w3.org/2001/XMLSchema-instance"),
+            new XElement(contactNs + "ID", id ?? string.Empty),
+            new XElement(contactNs + "Type", contactTypeValue),
+            new XElement(contactNs + "Code", contact.Code ?? string.Empty),
+            new XElement(contactNs + "FirstName", contact.FirstName ?? string.Empty),
+            new XElement(contactNs + "MiddleName", contact.MiddleName ?? string.Empty),
+            new XElement(contactNs + "LastName", contact.LastName ?? string.Empty),
+            new XElement(contactNs + "FullName", fullName ?? string.Empty),
+            new XElement(contactNs + "AddressLine_1", contact.AddressLine1 ?? string.Empty),
+            new XElement(contactNs + "AddressLine_2", contact.AddressLine2 ?? string.Empty),
+            new XElement(contactNs + "PostCode", contact.PostCode ?? string.Empty),
+            new XElement(contactNs + "City", contact.City ?? string.Empty),
+            new XElement(contactNs + "MailAddressLine_1", contact.MailAddressLine1 ?? string.Empty),
+            new XElement(contactNs + "MailAddressLine_2", contact.MailAddressLine2 ?? string.Empty),
+            new XElement(contactNs + "MailPostCode", contact.MailPostCode ?? string.Empty),
+            new XElement(contactNs + "MailCity", contact.MailCity ?? string.Empty),
+            new XElement(contactNs + "Country", contact.Country ?? string.Empty),
+            new XElement(contactNs + "WorkAddressLine_1", contact.WorkAddressLine1 ?? string.Empty),
+            new XElement(contactNs + "WorkAddressLine_2", contact.WorkAddressLine2 ?? string.Empty),
+            new XElement(contactNs + "WorkPostCode", contact.WorkPostCode ?? string.Empty),
+            new XElement(contactNs + "WorkCity", contact.WorkCity ?? string.Empty),
+            new XElement(contactNs + "WorkCountry", contact.WorkCountry ?? string.Empty),
+            new XElement(contactNs + "PhoneHome", contact.PhoneHome ?? string.Empty),
+            new XElement(contactNs + "PhoneWork", contact.PhoneWork ?? string.Empty),
+            new XElement(contactNs + "MobileHome", contact.MobileHome ?? string.Empty),
+            new XElement(contactNs + "MobileWork", contact.MobileWork ?? string.Empty),
+            new XElement(contactNs + "EmailHome", contact.EmailHome ?? string.Empty),
+            new XElement(contactNs + "EmailWork", contact.EmailWork ?? string.Empty),
+            new XElement(contactNs + "VATNumber", contact.VATNumber ?? string.Empty),
+            new XElement(contactNs + "CoCNumber", contact.CocNumber ?? string.Empty)
+        );
+
+        var body = new XElement(soapEnv + "Body",
+            new XElement(they + "UpdateContact",
+                new XElement(they + "sessionID", sessionId),
+                new XElement(they + "xmlDoc", contactElement)
+            )
+        );
+
+        root.Add(body);
+        return root;
+    }
+
+    public Models.Network.Response.UpdateContact ParseYukiUpdateContactResponse(string xml)
+    {
+        var doc = XDocument.Parse(xml);
+
+        var response = doc.Descendants()
+            .FirstOrDefault(e => e.Name.LocalName == "ContactResponse")
+            ?? throw new InvalidOperationException("Could not find ContactResponse node in XML.\n\n" + xml);
+
+        var timeStampValue = response.Element(XName.Get("TimeStamp", ""))?.Value.Trim() ?? string.Empty;
+        var succeededValue = response.Element(XName.Get("Succeeded", ""))?.Value.Trim() ?? string.Empty;
+
+        var failedValues = response.Elements()
+            .Where(e => e.Name.LocalName == "Failed")
+            .Select(e => e.Value.Trim())
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .ToList();
+
+        return new Models.Network.Response.UpdateContact
+        {
+            TimeStamp = DateOnly.TryParse(timeStampValue, out var timeStamp) ? timeStamp : DateOnly.MinValue,
+            Succeeded = succeededValue,
+            Failed = failedValues
+        };
+    }
+
     public List<Models.Network.Response.Contact> ParseYukiContactResponseList(string xml)
     {
         var doc = XDocument.Parse(xml);

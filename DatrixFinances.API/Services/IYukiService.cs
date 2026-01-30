@@ -1,4 +1,5 @@
 using DatrixFinances.API.Models.Network.Request;
+using DatrixFinances.API.Models.Network.Request.Children;
 
 namespace DatrixFinances.API.Services;
 
@@ -13,4 +14,6 @@ public interface IYukiService
     Task<object> GetAllOutstandingDebtorInvoices(string bearer, string administrationName, bool includeBankTransactions = false, string sortOrder = "DateAsc");
     Task<object> GetSalesItems(string bearer, string administrationName);
     Task<object> SearchContacts(string bearer, string searchTerm);
+    Task<object> AddContact(string bearer, UpdateContact contact);
+    Task<object> UpdateContact(string bearer, string id, UpdateContact contact);
 }
