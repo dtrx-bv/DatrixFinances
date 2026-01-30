@@ -1,6 +1,6 @@
 namespace DatrixFinances.API.Models.Network.Response;
 
-public class UpdateContact
+public class ContactResult
 {
     public DateOnly TimeStamp { get; set; } = DateOnly.MinValue;
     public string Succeeded { get; set; } = string.Empty;

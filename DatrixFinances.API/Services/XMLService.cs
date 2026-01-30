@@ -188,7 +188,7 @@ public class XMLService : IXMLService
         return root;
     }
 
-    public Models.Network.Response.UpdateContact ParseYukiUpdateContactResponse(string xml)
+    public ContactResult ParseYukiUpdateContactResponse(string xml)
     {
         var doc = XDocument.Parse(xml);
 
@@ -205,7 +205,7 @@ public class XMLService : IXMLService
             .Where(v => !string.IsNullOrWhiteSpace(v))
             .ToList();
 
-        return new Models.Network.Response.UpdateContact
+        return new ContactResult
         {
             TimeStamp = DateOnly.TryParse(timeStampValue, out var timeStamp) ? timeStamp : DateOnly.MinValue,
             Succeeded = succeededValue,

@@ -1,5 +1,6 @@
 using DatrixFinances.API.Models;
 using DatrixFinances.API.Models.Network.Request;
+using DatrixFinances.API.Models.Network.Response;
 using DatrixFinances.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -199,7 +200,7 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
         var response = await _yukiService.UpdateContact(bearer, id, contact);
         if (response is ErrorResponse)
             return NotFound(response);
-        if ((response as Models.Network.Response.UpdateContact)!.Failed.Count != 0)
+        if ((response as ContactResult)!.Failed.Count != 0)
             return UnprocessableEntity(response);
         return Ok(response);
     }

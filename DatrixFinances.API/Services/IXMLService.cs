@@ -18,7 +18,7 @@ public interface IXMLService
     XElement CreateSearchContactXML(string sessionId, string searchTerm);
     List<Contact> ParseYukiContactResponseList(string xml);
     List<Domain> ParseYukiDomainResponse(string xml);
-    XElement CreateAddContactXML(string sessionId, Models.Network.Request.UpdateContact contact);
-    XElement CreateUpdateContactXML(string sessionId, string id, Models.Network.Request.UpdateContact contact);
-    Models.Network.Response.UpdateContact ParseYukiUpdateContactResponse(string xml);
+    XElement CreateAddContactXML(string sessionId, UpdateContact contact);
+    XElement CreateUpdateContactXML(string sessionId, string id, UpdateContact contact);
+    ContactResult ParseYukiUpdateContactResponse(string xml);
 }
