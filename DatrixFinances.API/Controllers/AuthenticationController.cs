@@ -26,8 +26,6 @@ public class AuthenticationController(IAuthenticationService authenticationServi
         [FromForm(Name = "client_id")] string clientId,
         [FromForm(Name = "client_secret")] string clientSecret)
     {
-        Console.WriteLine($"Received token request with client_id: {clientId}");
-
         var token = await _authenticationService.GetBearerToken(clientId, clientSecret);
 
         if (token is ErrorResponse error)
