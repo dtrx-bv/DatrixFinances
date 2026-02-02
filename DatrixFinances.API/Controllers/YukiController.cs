@@ -77,7 +77,7 @@ public class YukiController(IHttpContextAccessor httpContextAccessor, IYukiServi
     /// <param name="administration"></param>
     /// <param name="invoice"></param>
     [Authorize]
-    [HttpPost("/yuki/administration/{administration}/invoice/sales")]
+    [HttpPost("administration/{administration}/invoice/sales")]
     public async Task<ActionResult> UploadSalesInvoice(string administration, SalesInvoice invoice)
     {
         var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
