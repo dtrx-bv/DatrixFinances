@@ -198,6 +198,10 @@ public class XMLService : IXMLService
 
         var timeStampValue = response.Element(XName.Get("TimeStamp", ""))?.Value.Trim() ?? string.Empty;
         var succeededValue = response.Element(XName.Get("Succeeded", ""))?.Value.Trim() ?? string.Empty;
+        
+        var contactId = succeededValue
+            .Split([' ', '\t', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+            .LastOrDefault(v => Guid.TryParse(v, out _)) ?? string.Empty;
 
         var failedValues = response.Elements()
             .Where(e => e.Name.LocalName == "Failed")
@@ -209,7 +213,8 @@ public class XMLService : IXMLService
         {
             TimeStamp = DateOnly.TryParse(timeStampValue, out var timeStamp) ? timeStamp : DateOnly.MinValue,
             Succeeded = succeededValue,
-            Failed = failedValues
+            Failed = failedValues,
+            ContactId = contactId
         };
     }
 
