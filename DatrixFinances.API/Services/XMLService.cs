@@ -484,74 +484,58 @@ public class XMLService : IXMLService
 
         var contact = new XElement(nsYuki + "Contact");
 
-        if (string.IsNullOrEmpty(invoice.Contact.ContactCode))
-            contact.Add(new XElement(nsYuki + "ContactCode"));
-        else
+        if (!string.IsNullOrEmpty(invoice.Contact.ContactCode))
             contact.Add(new XElement(nsYuki + "ContactCode", invoice.Contact.ContactCode));
 
-        contact.Add(new XElement(nsYuki + "FullName", !string.IsNullOrEmpty(invoice.Contact.FullName) ? invoice.Contact.FullName : PROPERTY_ERROR_MESSAGE));
+        if (!string.IsNullOrEmpty(invoice.Contact.FullName))
+            contact.Add(new XElement(nsYuki + "FullName", invoice.Contact.FullName));
 
-        if (string.IsNullOrEmpty(invoice.Contact.FirstName))
-            contact.Add(new XElement(nsYuki + "FirstName"));
-        else
+        if (!string.IsNullOrEmpty(invoice.Contact.FirstName))
             contact.Add(new XElement(nsYuki + "FirstName", invoice.Contact.FirstName));
 
-        if (string.IsNullOrEmpty(invoice.Contact.MiddleName))
-            contact.Add(new XElement(nsYuki + "MiddleName"));
-        else
+        if (!string.IsNullOrEmpty(invoice.Contact.MiddleName))
             contact.Add(new XElement(nsYuki + "MiddleName", invoice.Contact.MiddleName));
 
-        if (string.IsNullOrEmpty(invoice.Contact.LastName))
-            contact.Add(new XElement(nsYuki + "LastName"));
-        else
+        if (!string.IsNullOrEmpty(invoice.Contact.LastName))
             contact.Add(new XElement(nsYuki + "LastName", invoice.Contact.LastName));
 
-        contact.Add(new XElement(nsYuki + "Gender", !string.IsNullOrEmpty(invoice.Contact.Gender) ? invoice.Contact.Gender : PROPERTY_ERROR_MESSAGE));
-        contact.Add(new XElement(nsYuki + "CountryCode", !string.IsNullOrEmpty(invoice.Contact.CountryCode) ? invoice.Contact.CountryCode : PROPERTY_ERROR_MESSAGE));
-        contact.Add(new XElement(nsYuki + "City", !string.IsNullOrEmpty(invoice.Contact.City) ? invoice.Contact.City : PROPERTY_ERROR_MESSAGE));
+        if (!string.IsNullOrEmpty(invoice.Contact.Gender))
+            contact.Add(new XElement(nsYuki + "Gender", invoice.Contact.Gender));
+        
+        if (!string.IsNullOrEmpty(invoice.Contact.CountryCode))
+            contact.Add(new XElement(nsYuki + "CountryCode", invoice.Contact.CountryCode));
 
-        if (string.IsNullOrEmpty(invoice.Contact.Zipcode))
-            contact.Add(new XElement(nsYuki + "Zipcode"));
-        else
+        if (!string.IsNullOrEmpty(invoice.Contact.City))
+            contact.Add(new XElement(nsYuki + "City", invoice.Contact.City));
+
+        if (!string.IsNullOrEmpty(invoice.Contact.Zipcode))
             contact.Add(new XElement(nsYuki + "Zipcode", invoice.Contact.Zipcode));
 
-        contact.Add(new XElement(nsYuki + "AddressLine_1", !string.IsNullOrEmpty(invoice.Contact.AddressLine1) ? invoice.Contact.AddressLine1 : PROPERTY_ERROR_MESSAGE));
+        if (!string.IsNullOrEmpty(invoice.Contact.AddressLine1))
+            contact.Add(new XElement(nsYuki + "AddressLine_1", invoice.Contact.AddressLine1));
 
-        if (string.IsNullOrEmpty(invoice.Contact.AddressLine2))
-            contact.Add(new XElement(nsYuki + "AddressLine_2"));
-        else
+        if (!string.IsNullOrEmpty(invoice.Contact.AddressLine2))
             contact.Add(new XElement(nsYuki + "AddressLine_2", invoice.Contact.AddressLine2));
 
-        if (string.IsNullOrEmpty(invoice.Contact.Website))
-            contact.Add(new XElement(nsYuki + "Website"));
-        else
+        if (!string.IsNullOrEmpty(invoice.Contact.Website))
             contact.Add(new XElement(nsYuki + "Website", invoice.Contact.Website));
 
-        if (string.IsNullOrEmpty(invoice.Contact.CocNumber))
-            contact.Add(new XElement(nsYuki + "CoCNumber"));
-        else
+        if (!string.IsNullOrEmpty(invoice.Contact.CocNumber))
             contact.Add(new XElement(nsYuki + "CoCNumber", invoice.Contact.CocNumber));
 
-        if (string.IsNullOrEmpty(invoice.Contact.VATNumber))
-            contact.Add(new XElement(nsYuki + "VATNumber"));
-        else
+        if (!string.IsNullOrEmpty(invoice.Contact.VATNumber))
             contact.Add(new XElement(nsYuki + "VATNumber", invoice.Contact.VATNumber));
 
-        contact.Add(new XElement(nsYuki + "ContactType", !string.IsNullOrEmpty(invoice.Contact.ContactType) ? invoice.Contact.ContactType : PROPERTY_ERROR_MESSAGE));
+        if (!string.IsNullOrEmpty(invoice.Contact.ContactType))
+            contact.Add(new XElement(nsYuki + "ContactType", invoice.Contact.ContactType));
 
-        if (string.IsNullOrEmpty(invoice.Contact.BankAccount))
-            contact.Add(new XElement(nsYuki + "BankAccount"));
-        else
+        if (!string.IsNullOrEmpty(invoice.Contact.BankAccount))
             contact.Add(new XElement(nsYuki + "BankAccount", invoice.Contact.BankAccount));
 
-        if (string.IsNullOrEmpty(invoice.Contact.PhoneHome))
-            contact.Add(new XElement(nsYuki + "PhoneHome"));
-        else
+        if (!string.IsNullOrEmpty(invoice.Contact.PhoneHome))
             contact.Add(new XElement(nsYuki + "PhoneHome", invoice.Contact.PhoneHome));
 
-        if (string.IsNullOrEmpty(invoice.Contact.MobileHome))
-            contact.Add(new XElement(nsYuki + "MobileHome"));
-        else
+        if (!string.IsNullOrEmpty(invoice.Contact.MobileHome))
             contact.Add(new XElement(nsYuki + "MobileHome", invoice.Contact.MobileHome));
 
         childElement.Add(contact); 
